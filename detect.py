@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import argparse
 import math
 import os
@@ -89,7 +90,7 @@ DETECTORS=[CompressorDetector(),RareDotDetector(),EntropyDetector()]
 
 detectors_title=tuple(map(lambda c:c.__class__.__name__, DETECTORS))
 
-#print(("Name\t"+"%s\t"*len(DETECTORS)) % detectors_title)
+print(("Name\t"+"%s\t"*len(DETECTORS)) % detectors_title)
     
 all_data=[[] for _ in DETECTORS]
 results={}
@@ -124,8 +125,8 @@ for r, d, f in os.walk(args.directory):
         for i, d in enumerate(data):
             all_data[i].append(d)
         results[img]=data
-        # print(("%s"+"\t%f"*len(DETECTORS)) % tuple(res) )
-
+        print(("%s"+"\t%f"*len(DETECTORS)) % tuple(res) )
+"""
 stats=[]
 for r in all_data:
     stats.append((statistics.mean(r), statistics.median(r), statistics.pstdev(r)))
@@ -139,4 +140,4 @@ for i_name,i_data in results.items():
         if d>upper or d<lower:
             outliers[i]=1
     print(i_name,outliers)
-
+"""
