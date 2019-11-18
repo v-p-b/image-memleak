@@ -55,7 +55,8 @@ for f in args.DAT:
                 for j,w in enumerate(window):
                     val += w << (j*8)
                 val = val & 0xffffffff0000
-                if val & 0xff0000000000 == 0x7f0000000000:
+                #if val & 0xff0000000000 == 0x7f0000000000:
+                if val & 0xff0000000000 > 0 and val & 0xffff000000000000 == 0:
                     if val not in high:
                         high[val]=1
                     else:
