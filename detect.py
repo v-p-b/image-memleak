@@ -85,8 +85,34 @@ class EntropyDetector(Detector):
         #print("%f %f %f %f" % (sum(e)/len(e), statistics.median(e), min(e), max(e)))
         return max(e)
 
+class BlankDetector(Detector):
+    def __init__(self):
+        self.p_zero = None
+        self.blank = True
+        
+    def add_pixel(self, pixval):
+        if not self.blank:
+            return
 
-DETECTORS=[CompressorDetector(),RareDotDetector(),EntropyDetector()]
+        if self.p_zero is None:
+            self.p_zero = pixval
+            return
+
+        if self.p_zero != pixval:
+            self.blank = False
+
+    def get_result(self):
+        if self.blank:
+            return 0.0
+        else:
+            return 1.0
+
+#DETECTOR_CLASSES=[CompressorDetector,RareDotDetector,BlankDetector] 
+DETECTOR_CLASSES=[BlankDetector] 
+
+DETECTORS=[]
+for c in DETECTOR_CLASSES:
+    DETECTORS.append(c())
 
 detectors_title=tuple(map(lambda c:c.__class__.__name__, DETECTORS))
 
@@ -97,7 +123,10 @@ results={}
 
 for r, d, f in os.walk(args.directory):
     for img in f:
-        DETECTORS=[CompressorDetector(),RareDotDetector(),EntropyDetector()]
+        DETECTORS=[]
+        for c in DETECTOR_CLASSES:
+            DETECTORS.append(c())
+
         try:
             im=Image.open(os.path.join(args.directory,img))
             size=im.size
