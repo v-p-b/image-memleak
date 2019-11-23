@@ -31,7 +31,8 @@ def print_results(res):
 
 parser=argparse.ArgumentParser()
 parser.add_argument("DAT",nargs="+",help="Extracted .DAT files")
-parser.add_argument("--pointer-mask",type=str,default=None,help="Hexadecimal mask for pointer extraction (e.g. 0x7fdead000000)")
+parser.add_argument("--pointer-mask",type=str,default=None,help="Hexadecimal mask for pointer extraction (e.g. 0xFFFFFF000000)")
+parser.add_argument("--pointer-value",type=str,default="0",help="Hexadecimal mask for pointer extraction (e.g. 0x7fdead000000)")
 parser.add_argument("--maps",type=argparse.FileType('r'),default=None,help="Saved /proc/PID/maps")
 parser.add_argument("--num-results", type=int,default=10)
 args=parser.parse_args()
@@ -40,9 +41,14 @@ low={}
 
 res={}
 maps=None
+mask=None
+mask_value=None
 
 if args.maps is not None:
     maps=parse_maps(args.maps)
+if args.pointer_mask is not None:
+    mask=int(args.pointer_mask,16)
+    mask_value=int(args.pointer_value,16)
 
 for f in args.DAT:
     with open(f, "rb") as data:
@@ -54,19 +60,23 @@ for f in args.DAT:
                 val=0
                 for j,w in enumerate(window):
                     val += w << (j*8)
-                val = val & 0xffffffff0000
-                #if val & 0xff0000000000 == 0x7f0000000000:
-                if val & 0xff0000000000 > 0 and val & 0xffff000000000000 == 0:
-                    if val not in high:
-                        high[val]=1
-                    else:
-                        high[val]+=1
-                if val < 0xbfffffff and val > 0xffffff:
-                    if val not in low:
-                        low[val]=1
-                    else:
-                        low[val]+=1
-            
+                if mask is not None:
+                    if val & mask == mask_value:
+                        print("%x" % val)
+                else:
+                    val = val & 0xffffffff0000
+                    if val & 0xff0000000000 > 0 and val & 0xffff000000000000 == 0:
+                        if val not in high:
+                            high[val]=1
+                        else:
+                            high[val]+=1
+                    # https://stackoverflow.com/a/37512642
+                    if val < 0xbfffffff and val > 0xffffff: 
+                        if val not in low:
+                            low[val]=1
+                        else:
+                            low[val]+=1
+                
             i+=1
                     
 print("LOW:")
